@@ -1,4 +1,5 @@
 using FinalPPE.Data;
+using FinalPPE.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,6 +13,8 @@ builder.Services.AddDbContext<AppDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     )
 );
+
+builder.Services.AddScoped<ITrofeosService, TrofeosService>();
 
 var app = builder.Build();
 
