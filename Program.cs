@@ -1,5 +1,7 @@
 using FinalPPE.Data;
+using FinalPPE.Models;
 using FinalPPE.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -19,6 +21,16 @@ builder.Services.AddDbContext<AppDbContext>(options =>
 builder.Services.AddScoped<
     ITrofeosService,
     TrofeosService
+>();
+
+builder.Services.AddScoped<
+    IAuthService,
+    AuthService
+>();
+
+builder.Services.AddScoped<
+    IPasswordHasher<Usuario>,
+    PasswordHasher<Usuario>
 >();
 
 builder.Services.AddCors(options =>

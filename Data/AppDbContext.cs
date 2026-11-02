@@ -11,4 +11,15 @@ public class AppDbContext : DbContext
     }
 
     public DbSet<Trofeo> Trofeos => Set<Trofeo>();
+
+    public DbSet<Usuario> Usuarios => Set<Usuario>();
+
+    protected override void OnModelCreating(ModelBuilder modelBuilder)
+    {
+        base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Usuario>()
+            .HasIndex(u => u.Email)
+            .IsUnique();
+    }
 }
