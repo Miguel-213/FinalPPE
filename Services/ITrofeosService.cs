@@ -13,5 +13,5 @@ public interface ITrofeosService
 
     Task<Trofeo?> UpdateAsync(int id, UpdateTrofeoDto dto);
 
-    Task<bool> DeleteAsync(int id);
+    Task<Trofeo?> DeleteAsync(int id);
 }

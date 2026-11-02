@@ -78,19 +78,19 @@ public class TrofeosService : ITrofeosService
         return trofeo;
     }
 
-    public async Task<bool> DeleteAsync(int id)
+    public async Task<Trofeo?> DeleteAsync(int id)
     {
         var trofeo = await _context.Trofeos.FindAsync(id);
 
         if (trofeo is null)
         {
-            return false;
+            return null;
         }
 
         _context.Trofeos.Remove(trofeo);
 
         await _context.SaveChangesAsync();
 
-        return true;
+        return trofeo;
     }
 }
