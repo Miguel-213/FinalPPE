@@ -41,4 +41,29 @@ public class AuthController : ControllerBase
             }
         );
     }
+
+    [HttpPost("login")]
+    public async Task<ActionResult> Login(
+        LoginDto dto
+    )
+    {
+        var token =
+            await _authService.LoginAsync(dto);
+
+        if (token is null)
+        {
+            return Unauthorized(new
+            {
+                message = "Credenciales inválidas"
+            });
+        }
+
+        return StatusCode(
+            StatusCodes.Status201Created,
+            new
+            {
+                access_token = token
+            }
+        );
+    }
 }
