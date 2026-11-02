@@ -1,0 +1,6 @@
+@FinalPPE_HostAddress = http://localhost:5013
+
+GET {{FinalPPE_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
