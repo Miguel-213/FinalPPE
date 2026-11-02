@@ -14,11 +14,33 @@ public class TrofeosService : ITrofeosService
         _context = context;
     }
 
-    public async Task<List<Trofeo>> GetAllAsync()
+    public async Task<List<Trofeo>> GetAllAsync(
+        string? q = null,
+        int? page = null,
+        int pageSize = 4
+    )
     {
-        return await _context.Trofeos
-            .OrderBy(t => t.Id)
-            .ToListAsync();
+        var consulta = _context.Trofeos.AsQueryable();
+
+        if (!string.IsNullOrWhiteSpace(q))
+        {
+            consulta = consulta.Where(t =>
+                t.Nombre.ToLower().Contains(q.ToLower())
+            );
+        }
+
+        consulta = consulta.OrderBy(t => t.Id);
+
+        if (page.HasValue && page.Value > 0)
+        {
+            var pagina = page.Value;
+
+            consulta = consulta
+                .Skip((pagina - 1) * pageSize)
+                .Take(pageSize);
+        }
+
+        return await consulta.ToListAsync();
     }
 
     public async Task<Trofeo?> GetByIdAsync(int id)
@@ -46,7 +68,10 @@ public class TrofeosService : ITrofeosService
         return trofeo;
     }
 
-    public async Task<Trofeo?> UpdateAsync(int id, UpdateTrofeoDto dto)
+    public async Task<Trofeo?> UpdateAsync(
+        int id,
+        UpdateTrofeoDto dto
+    )
     {
         var trofeo = await _context.Trofeos.FindAsync(id);
 

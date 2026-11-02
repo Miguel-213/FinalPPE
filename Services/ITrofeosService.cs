@@ -5,7 +5,11 @@ namespace FinalPPE.Services;
 
 public interface ITrofeosService
 {
-    Task<List<Trofeo>> GetAllAsync();
+    Task<List<Trofeo>> GetAllAsync(
+        string? q = null,
+        int? page = null,
+        int pageSize = 4
+    );
 
     Task<Trofeo?> GetByIdAsync(int id);
 

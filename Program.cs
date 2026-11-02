@@ -10,11 +10,27 @@ builder.Services.AddOpenApi();
 
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseSqlite(
-        builder.Configuration.GetConnectionString("DefaultConnection")
+        builder.Configuration.GetConnectionString(
+            "DefaultConnection"
+        )
     )
 );
 
-builder.Services.AddScoped<ITrofeosService, TrofeosService>();
+builder.Services.AddScoped<
+    ITrofeosService,
+    TrofeosService
+>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("VueClient", policy =>
+    {
+        policy
+            .WithOrigins("http://localhost:5173")
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
 
 var app = builder.Build();
 
@@ -24,6 +40,8 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+
+app.UseCors("VueClient");
 
 app.UseAuthorization();
 
