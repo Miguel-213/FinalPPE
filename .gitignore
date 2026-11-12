@@ -8,3 +8,15 @@ obj/
 
 # Configuración local del editor
 .vscode/
+
+# Frontend y variables locales
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+
+# Resultados de pruebas
+__pycache__/
+test-results/
+playwright-report/

@@ -5,6 +5,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>a0ee9b7e-5ef6-4415-88fd-f249a43456e1</UserSecretsId>
+    <DefaultItemExcludes>$(DefaultItemExcludes);frontend/**</DefaultItemExcludes>
   </PropertyGroup>
 
   <ItemGroup>
@@ -15,6 +16,7 @@
       <PrivateAssets>all</PrivateAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.14" />
+    <PackageReference Include="Scalar.AspNetCore" Version="2.19.0" />
   </ItemGroup>
 
 </Project>
