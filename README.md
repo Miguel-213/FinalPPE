@@ -1,162 +1,244 @@
-# FinalPPE — Trophy Base
+FinalPPE — Trophy Base
 
-Proyecto académico de Programación para la Plataforma Empresarial. Reemplaza la API NestJS del Taller 1 por ASP.NET Core y conserva el cliente Vue original, sus rutas HTTP y los nombres JSON.
+Proyecto académico de Programación para la Plataforma Empresarial. Consiste en la migración de la API del Taller 1, desarrollada originalmente en NestJS, a ASP.NET Core, manteniendo el frontend en Vue 3 y las rutas HTTP existentes.
 
-## Tecnologías y organización
+Tecnologías utilizadas
+ASP.NET Core y .NET 10.
+Entity Framework Core 10.
+SQLite.
+JWT Bearer para autenticación.
+PasswordHasher de ASP.NET Core Identity.
+Vue 3, Vue Router, Axios y Vite.
+OpenAPI y Scalar.
+Estructura del proyecto
+text
+Controllers/    Controladores de la API
+Services/       Lógica de negocio
+DTOs/           Objetos de transferencia de datos
+Models/         Modelos de Usuario y Trofeo
+Data/           Configuración de Entity Framework
+Migrations/     Migraciones de la base de datos
+frontend/       Aplicación Vue
+tests/          Pruebas del backend
+Program.cs      Configuración principal de la aplicación
 
-- ASP.NET Core y .NET 10.
-- Entity Framework Core 10, SQLite y migraciones.
-- JWT Bearer y `PasswordHasher<Usuario>` de ASP.NET Core Identity.
-- Vue 3, Vue Router, Axios y Vite.
-- OpenAPI con `Microsoft.AspNetCore.OpenApi` e interfaz Scalar.
+Requisitos
+SDK de .NET 10.
+Node.js ^22.18.0 o >=24.12.0.
+npm.
+OpenSSL para generar la clave JWT en Linux.
+Python 3 para ejecutar las pruebas del backend.
 
-```text
-Controllers/    Peticiones HTTP y códigos de respuesta
-Services/       Lógica de negocio y contratos de los servicios
-DTOs/           Datos de entrada
-Models/         Entidades Trofeo y Usuario
-Data/           AppDbContext
-Migrations/     Historial del esquema de SQLite
-frontend/       Cliente Vue recuperado del Taller 1
-tests/          Prueba HTTP del backend
-Program.cs      Inyección de dependencias, JWT, CORS y middleware
-```
+Para comprobar las versiones instaladas:
 
-No se necesita ejecutar ni instalar el backend NestJS. Los servicios existentes de registro y generación de JWT se conservan.
-
-## Requisitos
-
-- **SDK .NET 10**, no solamente el runtime ni SDK .NET 9.
-- Node.js `^22.18.0` o `>=24.12.0`, y npm.
-- OpenSSL para generar una clave en Linux; alternativa PowerShell indicada abajo.
-- Python 3 para las pruebas HTTP opcionales.
-
-Comprueba las versiones:
-
-```bash
+bash
 dotnet --version
 node --version
 npm --version
-```
 
-## 1. Levantar la API
+1. Ejecutar el backend
 
-Desde la raíz del repositorio:
+Desde la carpeta principal del proyecto, ejecutar:
 
-```bash
+bash
 dotnet restore
 dotnet tool restore
-```
 
-Configura una clave aleatoria local. **No escribas la clave en el código ni en archivos que subas a Git.**
 
-Linux / Bash:
+Configurar la clave JWT utilizando user-secrets.
 
-```bash
+En Linux:
+
+bash
 dotnet user-secrets set "Jwt:Key" "$(openssl rand -hex 32)"
-```
 
-Alternativa en PowerShell:
 
-```powershell
+En PowerShell:
+
+powershell
 $bytes = New-Object byte[] 32
 $generador = [System.Security.Cryptography.RandomNumberGenerator]::Create()
 $generador.GetBytes($bytes)
 $generador.Dispose()
 $clave = [BitConverter]::ToString($bytes).Replace("-", "")
 dotnet user-secrets set "Jwt:Key" $clave
-```
 
-Aplica las migraciones y ejecuta el perfil HTTP de desarrollo:
 
-```bash
+Ejecutar las migraciones y levantar la API:
+
+bash
 dotnet tool run dotnet-ef database update
 dotnet run --launch-profile http
-```
 
-- API: `http://localhost:5013`.
-- SQLite: `finalppe.db`, creado por las migraciones.
-- OpenAPI: `http://localhost:5013/openapi/v1.json`.
-- Scalar: `http://localhost:5013/scalar/v1`.
 
-El perfil `http` establece `ASPNETCORE_ENVIRONMENT=Development`, carga user-secrets y permite HTTP local. Fuera de desarrollo se conserva la redirección a HTTPS; suministra los secretos mediante configuración del entorno. No se aplican migraciones automáticamente al iniciar.
+La API queda disponible en:
 
-Para futuros cambios del modelo, desde la raíz:
+API: http://localhost:5013
+OpenAPI: http://localhost:5013/openapi/v1.json
+Scalar: http://localhost:5013/scalar/v1
 
-```bash
+La base de datos SQLite se crea con el nombre finalppe.db.
+
+Para crear nuevas migraciones:
+
+bash
 dotnet tool run dotnet-ef migrations add NombreMigracion
 dotnet tool run dotnet-ef database update
-```
 
-Las migraciones se versionan; los archivos de base de datos no.
+2. Ejecutar el frontend
 
-## 2. Apuntar Vue a ASP.NET Core
+Abrir otra terminal y ejecutar desde la carpeta principal:
 
-En otra terminal, desde la raíz:
-
-```bash
+bash
 cp frontend/.env.example frontend/.env
 npm ci --prefix frontend
 npm run dev --prefix frontend
-```
 
-En PowerShell puedes reemplazar `cp` por `Copy-Item`.
 
-Abre `http://localhost:5173`. La configuración local contiene:
+En PowerShell:
 
-```dotenv
+powershell
+Copy-Item frontend/.env.example frontend/.env
+
+
+La configuración del archivo .env es:
+
+dotenv
 VITE_API_URL=http://localhost:5013
-```
 
-`frontend/src/services/api.js` es la única instancia HTTP: registro, login y CRUD utilizan esta URL. Si cambias el puerto de la API, modifica solamente `VITE_API_URL` y **reinicia Vite**. Para un build de producción, establece la variable antes de compilar:
 
-```bash
+El frontend estará disponible en:
+
+http://localhost:5173
+
+La URL de la API se configura desde frontend/src/services/api.js mediante la variable VITE_API_URL.
+
+Para generar la versión de producción:
+
+bash
 npm run build --prefix frontend
-```
 
-Vite usa el puerto 5173 con `strictPort`; si está ocupado, debes liberarlo en vez de cambiar silenciosamente a otro puerto. CORS permite exactamente `http://localhost:5173`, los encabezados JSON y Authorization, y los métodos del CRUD. `127.0.0.1` u otro puerto son orígenes diferentes.
+3. Configuración
 
-## Configuración
+Las principales opciones de configuración son:
 
-| Variable / opción | Uso |
-| --- | --- |
-| `ConnectionStrings:DefaultConnection` | `Data Source=finalppe.db`, en appsettings.json |
-| `Jwt:Issuer` | `FinalPPE`, emisor del token |
-| `Jwt:Audience` | `FinalPPE`, API destinataria |
-| `Jwt:Key` | Secreto local; mínimo 32 bytes UTF-8, usar una clave aleatoria |
-| `ASPNETCORE_ENVIRONMENT` | `Development` para user-secrets, HTTP local y documentación |
-| `VITE_API_URL` | URL pública de la API que utiliza Vue; nunca colocar secretos aquí |
+Variable	Descripción
+ConnectionStrings:DefaultConnection	Conexión a la base de datos SQLite
+Jwt:Issuer	Emisor del token
+Jwt:Audience	Destinatario del token
+Jwt:Key	Clave utilizada para firmar los JWT
+ASPNETCORE_ENVIRONMENT	Entorno de ejecución
+VITE_API_URL	Dirección de la API para Vue
 
-En variables del entorno de ASP.NET Core se utiliza doble guion bajo: `Jwt__Key`, `Jwt__Issuer`, `Jwt__Audience` y `ConnectionStrings__DefaultConnection`. User-secrets es para desarrollo, no un almacén cifrado de producción. `.env`, SQLite, `node_modules`, `bin`, `obj` y resultados de pruebas están excluidos de Git; `.env.example` y los lockfiles sí se incluyen.
+La conexión SQLite utiliza por defecto:
 
-## Contrato HTTP
+text
+Data Source=finalppe.db
 
-Todos los nombres JSON usan camelCase. Las escrituras autenticadas reciben `Authorization: Bearer <access_token>`.
 
-| Método y ruta | Acceso | Respuesta exitosa |
-| --- | --- | --- |
-| `POST /auth/register` | Público | 201: `{ "message": "Usuario registrado", "id": 1, "email": "..." }` |
-| `POST /auth/login` | Público | 201: `{ "access_token": "..." }` |
-| `GET /trofeos` | Público | 200: array de trofeos |
-| `GET /trofeos/{id}` | Público | 200: trofeo |
-| `POST /trofeos` | JWT | 201: trofeo creado, encabezado Location |
-| `PATCH /trofeos/{id}` | JWT | 200: trofeo actualizado |
-| `DELETE /trofeos/{id}` | JWT | 200: trofeo eliminado |
+Las variables de entorno de ASP.NET Core utilizan doble guion bajo. Por ejemplo:
 
-El login devuelve **201**, como NestJS en el Taller 1; se mantiene el nombre `access_token`. Email duplicado devuelve 409. Credenciales incorrectas o escrituras sin token válido devuelven 401. Un ID inexistente devuelve 404 en el backend ASP.NET existente. No se devuelve la contraseña ni su hash.
+text
+Jwt__Key
+Jwt__Issuer
+Jwt__Audience
+ConnectionStrings__DefaultConnection
 
-Registro y login reciben:
 
-```json
+Los archivos .env, las bases de datos locales y las carpetas de compilación están excluidos del repositorio.
+
+4. Rutas de la API
+
+La API mantiene las rutas y los nombres JSON utilizados en el proyecto original.
+
+Método	Ruta	Acceso
+POST	/auth/register	Público
+POST	/auth/login	Público
+GET	/trofeos	Público
+GET	/trofeos/{id}	Público
+POST	/trofeos	JWT
+PATCH	/trofeos/{id}	JWT
+DELETE	/trofeos/{id}	JWT
+Registro
+
+Ruta:
+
+http
+POST /auth/register
+
+
+JSON:
+
+json
 {
   "email": "usuario@correo.com",
   "password": "UnaContrasenaParaLaDemo"
 }
-```
 
-Crear un trofeo recibe:
 
-```json
+Respuesta exitosa:
+
+json
+{
+  "message": "Usuario registrado",
+  "id": 1,
+  "email": "usuario@correo.com"
+}
+
+
+El registro devuelve código 201. Si el correo ya existe, devuelve 409.
+
+Login
+
+Ruta:
+
+http
+POST /auth/login
+
+
+JSON:
+
+json
+{
+  "email": "usuario@correo.com",
+  "password": "UnaContrasenaParaLaDemo"
+}
+
+
+Respuesta:
+
+json
+{
+  "access_token": "..."
+}
+
+
+El login devuelve código 201 y genera un JWT válido durante dos horas.
+
+Consultar trofeos
+
+Obtener todos los trofeos:
+
+http
+GET /trofeos
+
+
+Consultar un trofeo por ID:
+
+http
+GET /trofeos/1
+
+Crear trofeo
+
+Ruta:
+
+http
+POST /trofeos
+
+
+Requiere autenticación JWT.
+
+json
 {
   "nombre": "Diamantes",
   "juego": "Minecraft",
@@ -165,125 +247,170 @@ Crear un trofeo recibe:
   "estado": false,
   "imagen": "http://localhost:5173/favicon.ico"
 }
-```
 
-La respuesta agrega `id`. PATCH acepta únicamente los campos que se desean modificar; por ejemplo `{ "estado": true }`. `estado` es booleano, no texto. `imagen` contiene una URL, no un archivo subido.
+Actualizar trofeo
 
-### Búsqueda y paginación
+Ruta:
 
-La API conserva el listado completo como array cuando no se especifica `page`, y permite:
+http
+PATCH /trofeos/1
 
-```text
+
+Permite modificar únicamente los campos necesarios.
+
+json
+{
+  "estado": true
+}
+
+Eliminar trofeo
+
+Ruta:
+
+http
+DELETE /trofeos/1
+
+
+También requiere autenticación JWT.
+
+Las respuestas utilizan los siguientes códigos:
+
+200: operación realizada correctamente.
+201: registro o creación realizada.
+401: falta de autenticación o credenciales incorrectas.
+404: registro no encontrado.
+409: correo electrónico duplicado.
+5. Búsqueda y paginación
+
+La API permite consultar los trofeos utilizando los parámetros q, page y pageSize.
+
+Ejemplos:
+
+http
 GET /trofeos?q=minecraft
 GET /trofeos?page=2
 GET /trofeos?q=minecraft&page=1&pageSize=4
-```
 
-- `q`: búsqueda por nombre sin distinguir mayúsculas.
-- `page`: página comenzando en 1; si falta o no es positiva se devuelve el listado sin paginar.
-- `pageSize`: 4 por defecto; si es menor que 1 se utiliza 4.
-- Registros ordenados por ID; respuesta siempre como array, sin envelope ni total agregado.
+q: busca por nombre del trofeo sin distinguir mayúsculas y minúsculas.
+page: indica el número de página.
+pageSize: cantidad de registros por página. Su valor predeterminado es 4.
 
-En el ZIP original, NestJS no implementaba parámetros de búsqueda/paginación: **Vue descargaba el array completo y filtraba/paginaba localmente de cuatro en cuatro**. Se mantiene ese comportamiento para no rediseñar el cliente ni romper su contrato. Los parámetros adicionales del servidor se comprueban por HTTP y en Scalar.
+Los resultados se ordenan por ID y se devuelven como un array.
 
-## Cómo funciona JWT y la sesión
+El frontend original realiza la búsqueda y paginación localmente, mostrando cuatro trofeos por página. Se mantiene este funcionamiento para conservar la estructura original de Vue.
 
-1. Registro: `AuthController` entrega el DTO a `AuthService`; `PasswordHasher` almacena un hash en SQLite y el índice único evita emails duplicados.
-2. Login: el servicio verifica el hash y firma un JWT HMAC SHA-256 con `sub` y `email`, válido durante dos horas.
-3. `AddAuthentication().AddJwtBearer()` configura cómo leer y verificar el Bearer recibido: firma, issuer, audience y expiración. Solo se acepta HS256 y no se añade tolerancia de reloj a la caducidad.
-4. `UseAuthentication()` identifica al usuario antes de `UseAuthorization()`. `[Authorize]` exige autenticación en POST, PATCH y DELETE; GET, registro y login continúan públicos.
-5. Vue guarda `access_token` bajo la clave `token` de `localStorage`; Axios agrega el encabezado Bearer.
-6. Cerrar sesión elimina el token y oculta controles de escritura. Un 401 en una operación protegida también borra el estado reactivo y redirige al login; un login incorrecto conserva su mensaje de error.
+6. Autenticación JWT
 
-La autenticación identifica al usuario; la autorización decide si puede acceder al endpoint. Este proyecto no implementa roles ni propiedad de trofeos: cualquier usuario autenticado puede modificar los trofeos. Logout es local, **no revoca** un JWT ya emitido; no hay refresh token. En producción utiliza HTTPS y recuerda que localStorage requiere prevenir XSS.
+La autenticación funciona de la siguiente manera:
 
-## Probar con Scalar (bonus)
+El usuario se registra mediante /auth/register.
+La contraseña se almacena utilizando PasswordHasher.
+Al iniciar sesión, se comprueban las credenciales.
+Si son correctas, se genera un JWT firmado con HMAC SHA-256.
+El token contiene el identificador y el correo del usuario.
+Vue guarda el token en localStorage.
+Axios envía el token mediante el encabezado Authorization: Bearer.
+ASP.NET Core valida el token antes de permitir las operaciones protegidas.
 
-OpenAPI y Scalar se exponen solamente en desarrollo.
+Las operaciones POST, PATCH y DELETE requieren autenticación. Las consultas GET y las rutas de autenticación son públicas.
 
-1. Abre `http://localhost:5013/scalar/v1`.
-2. Ejecuta `POST /auth/register` y luego `POST /auth/login` con JSON.
-3. Copia solamente el valor de `access_token`.
-4. En la autenticación **Bearer**, pega el JWT, sin anteponer `Bearer`; la interfaz agrega el encabezado.
-5. Ejecuta POST, PATCH o DELETE de trofeos con ese token.
-6. Quita el token y repite una escritura: debe responder 401. GET sigue siendo público.
+La duración del token es de dos horas. El proyecto no utiliza roles ni refresh tokens, y el cierre de sesión elimina el token almacenado en el frontend.
 
-El documento contiene el esquema HTTP Bearer, marca solo las escrituras con requisitos de seguridad y documenta sus respuestas 401. La configuración de OpenAPI describe la seguridad; quien la aplica realmente es JWT Bearer y `[Authorize]`.
+7. Documentación con Scalar
 
-## Pruebas reproducibles
+La documentación de la API está disponible en:
 
-### Backend
+http://localhost:5013/scalar/v1
 
-Desde la raíz, con Python 3 y SDK .NET 10:
+Desde Scalar se pueden ejecutar las diferentes rutas:
 
-```bash
+Registrar un usuario.
+Iniciar sesión.
+Copiar el valor de access_token.
+Configurar la autenticación Bearer.
+Ejecutar las operaciones del CRUD.
+
+Las operaciones de escritura requieren un token válido. Sin autenticación, la API devuelve 401.
+
+OpenAPI y Scalar están habilitados en el entorno de desarrollo.
+
+8. Pruebas del backend
+
+Las pruebas HTTP se ejecutan con Python 3:
+
+bash
 python tests/api_smoke.py
-```
 
-Usa `python3` si así se llama en tu sistema. Puedes indicar otro ejecutable: `python tests/api_smoke.py --dotnet /ruta/a/dotnet`.
 
-La prueba compila, restaura EF, aplica migraciones en una **base temporal**, inicia la API en el puerto 5014 y verifica 50 peticiones HTTP: rutas públicas, registro duplicado, hash, login, JWT vencido/alterado/issuer o audience incorrectos, 401, CRUD, PATCH parcial y booleano false, búsqueda, paginación, CORS y seguridad en OpenAPI. Al terminar cierra su propio proceso y elimina su base temporal; no usa `finalppe.db`.
+En algunos sistemas se utiliza:
 
-### Vue en Chromium
+bash
+python3 tests/api_smoke.py
 
-Con API y Vite ejecutándose según los pasos anteriores:
 
-```bash
+El archivo de pruebas verifica:
+
+Registro de usuarios.
+Correos duplicados.
+Inicio de sesión.
+Validación de JWT.
+Operaciones CRUD.
+Actualizaciones parciales.
+Búsqueda y paginación.
+Configuración CORS.
+Documentación OpenAPI.
+
+Las pruebas utilizan una base de datos temporal y ejecutan la API en el puerto 5014.
+
+9. Pruebas del frontend
+
+Con el backend y Vue en funcionamiento, instalar Chromium para Playwright:
+
+bash
 npm exec --prefix frontend -- playwright install chromium
+
+
+Ejecutar las pruebas:
+
+bash
 npm run test:e2e --prefix frontend
-```
 
-En Linux pueden ser necesarias las dependencias del navegador: `playwright install --with-deps chromium`, siguiendo las instrucciones de Playwright para tu distribución.
 
-Las dos pruebas usan Chromium real. La de Vue comprueba registro, duplicado, login incorrecto/correcto, persistencia al recargar, cinco creaciones, paginación 4 + 1, búsqueda por nombre y sin resultados, edición, cancelación/confirmación de eliminación, logout y token inválido. Verifica Bearer y errores de JavaScript y genera una captura en `frontend/test-results/`. La de Scalar introduce un JWT en su interfaz, crea un trofeo con 201 y repite sin token para comprobar 401. Ambas eliminan únicamente sus propios trofeos; los usuarios de prueba permanecen. Si la API usa otro puerto, proporciona también `VITE_API_URL` al comando de prueba.
+Las pruebas verifican el registro, inicio de sesión, persistencia de sesión, creación de trofeos, búsqueda, paginación, edición, eliminación y cierre de sesión.
 
-Comprobaciones de compilación y dependencias:
+También se comprueba el funcionamiento de la autenticación y las respuestas de la API.
 
-```bash
+10. Compilación
+
+Para comprobar que los proyectos compilan correctamente:
+
+Backend:
+
+bash
 dotnet build
+
+
+Frontend:
+
+bash
 npm run build --prefix frontend
+
+
+Revisión de dependencias:
+
+bash
 npm audit --prefix frontend
-git diff --check
-```
 
-Detén la API antes de recompilar en Windows si su DLL está bloqueada. Las pruebas se ejecutaron con SDK .NET 10, Chromium y una base de datos de demostración aislada.
-
-## Verificación de la rúbrica y entrega
-
-- [x] API ASP.NET Core con controllers, servicios inyectados y DTOs.
-- [x] Mismo modelo conceptual, EF Core, SQLite y migraciones versionadas.
-- [x] Rutas, verbos y JSON del CRUD y autenticación conservados.
-- [x] Listado compatible, búsqueda/paginación y CORS para Vue.
-- [x] Registro con hash, login con JWT firmado y escrituras con Authorize.
-- [x] Cliente Vue original conectado, CRUD y flujo de sesión probados.
-- [x] README con instalación, variables y ejecución.
-- [x] Bonus: Microsoft.AspNetCore.OpenApi, Scalar y pruebas con Bearer.
-- [ ] Guardar los cambios en Git y subirlos al repositorio público.
-- [ ] Realizar la demostración en clase y la sustentación individual.
-
-### Commits sugeridos
-
-Haz cada commit después de verificar su bloque; estos comandos no se ejecutaron automáticamente:
-
-```bash
-git add Program.cs Controllers/TrofeosController.cs tests/api_smoke.py
-git commit -m "Proteger escritura de trofeos con JWT"
-
-git add .gitignore FinalPPE.csproj frontend
-git commit -m "Conectar Vue con la API de ASP.NET"
-
-git add Program.cs FinalPPE.csproj Controllers/AuthController.cs Controllers/TrofeosController.cs tests/api_smoke.py README.md
-git commit -m "Agregar OpenAPI y documentación del proyecto"
-```
-
-Si todos los bloques ya se encuentran juntos sin commits intermedios, es más claro guardar un solo commit:
-
-```bash
-git add Program.cs Controllers/AuthController.cs Controllers/TrofeosController.cs FinalPPE.csproj .gitignore frontend tests/api_smoke.py README.md
-git diff --cached --stat
-git commit -m "Completar autenticación e integración con Vue"
-```
-
-Revisa lo que estás incluyendo antes de guardar; no subas claves, tokens ni archivos locales. La publicación en GitHub y la demostración requieren una acción posterior del estudiante.
-
-Para la sustentación, muestra un GET sin sesión, una escritura con 401, el login y la misma escritura con Bearer; explica después la secuencia controlador → servicio → DbContext y la diferencia entre generar un token y validarlo.
+11. Estado del proyecto
+Migración de NestJS a ASP.NET Core.
+Configuración de Entity Framework Core y SQLite.
+Migraciones de la base de datos.
+Registro e inicio de sesión.
+Autenticación mediante JWT.
+Protección de las rutas de escritura.
+Integración con el frontend Vue.
+Operaciones CRUD de trofeos.
+Búsqueda y paginación.
+Configuración de CORS.
+Documentación con OpenAPI y Scalar.
+Pruebas del backend y frontend.
