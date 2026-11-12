@@ -1,5 +1,7 @@
 using FinalPPE.DTOs;
+using FinalPPE.Models;
 using FinalPPE.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace FinalPPE.Controllers;
@@ -18,6 +20,7 @@ public class TrofeosController : ControllerBase
     }
 
     [HttpGet]
+    [ProducesResponseType(typeof(List<Trofeo>), StatusCodes.Status200OK)]
     public async Task<ActionResult> GetAll(
         [FromQuery] string? q = null,
         [FromQuery] int? page = null,
@@ -39,6 +42,8 @@ public class TrofeosController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [ProducesResponseType(typeof(Trofeo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> GetById(int id)
     {
         var trofeo =
@@ -52,7 +57,9 @@ public class TrofeosController : ControllerBase
         return Ok(trofeo);
     }
 
+    [Authorize]
     [HttpPost]
+    [ProducesResponseType(typeof(Trofeo), StatusCodes.Status201Created)]
     public async Task<ActionResult> Create(
         CreateTrofeoDto dto
     )
@@ -67,7 +74,10 @@ public class TrofeosController : ControllerBase
         );
     }
 
+    [Authorize]
     [HttpPatch("{id}")]
+    [ProducesResponseType(typeof(Trofeo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Update(
         int id,
         UpdateTrofeoDto dto
@@ -84,7 +94,10 @@ public class TrofeosController : ControllerBase
         return Ok(trofeo);
     }
 
+    [Authorize]
     [HttpDelete("{id}")]
+    [ProducesResponseType(typeof(Trofeo), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
     public async Task<ActionResult> Delete(int id)
     {
         var trofeo =
